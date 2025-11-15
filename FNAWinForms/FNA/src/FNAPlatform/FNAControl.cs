@@ -39,6 +39,8 @@ namespace Microsoft.Xna.Framework
 		public GraphicsDevice GraphicsDevice { get; private set; }
 		[Browsable(false)]
 		public GameWindow Window { get; private set; }
+		[Browsable(false)]
+		public ContentManager Content { get; private set; }
 		[DefaultValue(false)]
 		public bool IsInitialized { get; private set; }
 		[Category("FNA")]
@@ -86,6 +88,12 @@ namespace Microsoft.Xna.Framework
 				this.Window = new FNAWindow( this.sdl_window, fna_displayName );
 
 				initialize_GraphicsDevice( );
+
+				ServiceContainer services = new ServiceContainer();
+				services.AddService(typeof(IGraphicsDeviceService), new GraphicsDeviceService(this.GraphicsDevice));
+
+				this.Content = new ContentManager(services);
+				this.Content.RootDirectory = @"Content";
 
 				SDL.SDL_ShowWindow( this.sdl_window );
 
@@ -327,5 +335,30 @@ namespace Microsoft.Xna.Framework
 			[DllImport("user32.dll")]
 			public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 		}
+
+		//
+		// GraphicsDevice
+		// ServiceProvider
+		public class GraphicsDeviceService : IGraphicsDeviceService
+		{
+			private GraphicsDevice graphicsDevice;
+
+			public GraphicsDeviceService( GraphicsDevice gDevice ) {
+				this.graphicsDevice = gDevice;
+			}
+
+			public GraphicsDevice GraphicsDevice {
+				get { return this.graphicsDevice; }
+			}
+
+			public event EventHandler<EventArgs> DeviceCreated;
+			public event EventHandler<EventArgs> DeviceDisposing;
+			public event EventHandler<EventArgs> DeviceReset;
+			public event EventHandler<EventArgs> DeviceResetting;
+
+			protected virtual void OnDeviceCreated( ) { }
+			protected virtual void OnDeviceDisposing( ) { }
+		}
 	}
 }
+
