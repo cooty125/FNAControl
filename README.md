@@ -1,4 +1,4 @@
-This implementation is most powerful implementation of FNA possible.
+This implementation is most powerful implementation of FNA in WinForms possible.
 
 Have a look for FNA/src/FNAPlatform/FNAControl.cs and add this file to FNA source files, add System.Windows.Forms reference to the FNA.csproj project and compile FNA.dll
 That´s it! Now you can create WinForm (.NET8) application, add FNA reference to your project and FNAControl is ready to go.
