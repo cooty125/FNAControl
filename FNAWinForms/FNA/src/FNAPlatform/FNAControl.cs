@@ -96,6 +96,7 @@ namespace Microsoft.Xna.Framework
 				this.Content.RootDirectory = @"Content";
 
 				SDL.SDL_ShowWindow( this.sdl_window );
+				SDL.SDL_RaiseWindow( this.sdl_window );
 
 				this.frameStopwatch = new Stopwatch( );
 				this.frameStopwatch.Start( );
@@ -103,6 +104,7 @@ namespace Microsoft.Xna.Framework
 
 				this.IsInitialized = true;
 				this.Initialize( );
+				this.Focus( );
 				this.StartRendering( );
 
 			} catch (Exception ex) {
@@ -361,4 +363,5 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
