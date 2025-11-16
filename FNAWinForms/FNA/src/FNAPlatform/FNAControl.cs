@@ -108,7 +108,6 @@ namespace Microsoft.Xna.Framework
 
 				this.IsInitialized = true;
 				this.Initialize( );
-				this.Focus( );
 				this.StartRendering( );
 
 			} catch (Exception ex) {
@@ -387,3 +386,4 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
