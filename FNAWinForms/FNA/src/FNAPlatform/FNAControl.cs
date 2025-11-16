@@ -277,6 +277,44 @@ namespace Microsoft.Xna.Framework
 			}
 		}
 
+		//
+		// SDL
+		// GetCurrentVideoDriverName
+		public string GetCurrentVideoDriverName( ) {
+			string dName = "NULL";
+
+			if ( this.IsInitialized ) {
+				string videoDriver = SDL.SDL_GetCurrentVideoDriver( );
+				switch ( videoDriver != null ? videoDriver.ToLower( ) : "" ) {
+					case "windows":
+						dName = "Direct3D 11";
+						break;
+					case "direct3d":
+						dName = "Direct3D";
+						break;
+					case "d3d11":
+						dName = "Direct3D 11";
+						break;
+					case "d3d12":
+						dName = "Direct3D 12";
+						break;
+					case "x11":
+						dName = "OpenGL (X11)";
+						break;
+					case "opengl":
+						dName = "OpenGL";
+						break;
+					case "vulkan":
+						dName = "Vulkan";
+						break;
+					default:
+						dName = videoDriver;
+						break;
+				}
+			}
+			return dName;
+		}
+
 		protected override void OnHandleCreated( EventArgs e ) {
 			base.OnHandleCreated( e );
 
@@ -388,7 +426,3 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
-
-
-
-
