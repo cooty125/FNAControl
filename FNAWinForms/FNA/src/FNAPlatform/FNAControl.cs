@@ -68,7 +68,7 @@ namespace Microsoft.Xna.Framework
 
 			this.FPSMax = FNAC_FPSMAX;
 
-			this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, false);
+			this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.Selectable, false);
 			this.DoubleBuffered = false;
 			this.Resize += OnResize;
 		}
@@ -336,6 +336,11 @@ namespace Microsoft.Xna.Framework
 		protected override void OnPaint( PaintEventArgs e ) {
 			base.OnPaint( e );
 		}
+		protected override void OnGotFocus( EventArgs e )
+		{
+			SDL.SDL_RaiseWindow(this.sdl_window);
+			base.OnGotFocus( e );
+		}
 		protected override void Dispose( bool disposing ) {
 			this.StopRendering();
 
@@ -426,3 +431,4 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
