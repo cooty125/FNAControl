@@ -32,6 +32,7 @@ namespace Microsoft.Xna.Framework
 		private Stopwatch frameStopwatch;
 		private long previousFrameTime;
 		private readonly object timerLock = new object();
+		private GameProvider gameProvider;
 		private const int FNAC_MSAA = 0;								// Multisample Anti-Aliasing
 		private const int FNAC_FPSMAX = 60;								// Maximum fps
 
@@ -90,13 +91,16 @@ namespace Microsoft.Xna.Framework
 				initialize_GraphicsDevice( );
 
 				ServiceContainer services = new ServiceContainer();
-				services.AddService(typeof(IGraphicsDeviceService), new GraphicsDeviceService(this.GraphicsDevice));
+				GraphicsDeviceService gdService = new GraphicsDeviceService(this.GraphicsDevice);
+				services.AddService(typeof(IGraphicsDeviceService), gdService);
 
+				this.gameProvider = new GameProvider(gdService);
 				this.Content = new ContentManager(services);
 				this.Content.RootDirectory = @"Content";
 
 				SDL.SDL_ShowWindow( this.sdl_window );
 				SDL.SDL_RaiseWindow( this.sdl_window );
+				SDL.SDL_ShowCursor( );
 
 				this.frameStopwatch = new Stopwatch( );
 				this.frameStopwatch.Start( );
@@ -122,6 +126,12 @@ namespace Microsoft.Xna.Framework
 				this.BeginInvoke( new Action( ( ) => this.LoopCallback( state ) ) );
 				return;
 			}
+
+			GraphicsAdapter gAdapter = null;
+			bool[] textInputControlDown = new bool[64];
+			bool textInputSuppress = true;
+
+			FNAPlatform.PollEvents(this.gameProvider, ref gAdapter, textInputControlDown, ref textInputSuppress);
 
 			long currentTime = this.frameStopwatch.ElapsedMilliseconds;
 			float elapsedTime = ( ( currentTime - this.previousFrameTime ) / 1000.0f );
@@ -361,7 +371,19 @@ namespace Microsoft.Xna.Framework
 			protected virtual void OnDeviceCreated( ) { }
 			protected virtual void OnDeviceDisposing( ) { }
 		}
+
+		//
+		// Game
+		// GameProvider
+		internal class GameProvider : Game
+		{
+			protected override void Initialize() { }
+			protected override void Update(GameTime gameTime) { }
+			protected override void Draw(GameTime gameTime) { }
+
+			public GameProvider(GraphicsDeviceService gdService) {
+				this.Services.AddService(typeof(IGraphicsDeviceService), gdService);
+			}
+		}
 	}
 }
-
-
