@@ -75,7 +75,7 @@ namespace Microsoft.Xna.Framework
 			this.SetStyle( ControlStyles.OptimizedDoubleBuffer, false );
 			this.SetStyle( ControlStyles.Selectable, true );
 
-			this.TabStop = false;
+			this.TabStop = true;
 			this.DoubleBuffered = false;
 			this.Resize += OnResize;
 		}
@@ -89,6 +89,7 @@ namespace Microsoft.Xna.Framework
 
 			try {
 				this.sdl_window = this.create_SDLWindow( );
+				SDL.SDL_SetWindowFocusable( this.sdl_window, true );
 
 				IntPtr sdl_wHandle = this.getHandle_SDLWindow( this.sdl_window );
 				embed_SDLWindow( sdl_wHandle );
@@ -438,6 +439,7 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
 
