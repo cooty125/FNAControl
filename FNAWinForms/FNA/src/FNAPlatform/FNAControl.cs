@@ -301,7 +301,8 @@ namespace Microsoft.Xna.Framework
 			this.StopRendering();
 
 			if ( disposing ) {
-				System.Threading.Thread.Sleep(50);
+				System.Threading.Thread.Sleep(100);
+				this.gameProvider = null;
 
 				if (this.GraphicsDevice != null) {
 					this.GraphicsDevice.Dispose( );
@@ -386,4 +387,5 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
