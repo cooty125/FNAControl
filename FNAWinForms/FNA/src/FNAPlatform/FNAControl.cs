@@ -68,7 +68,14 @@ namespace Microsoft.Xna.Framework
 
 			this.FPSMax = FNAC_FPSMAX;
 
-			this.SetStyle( ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.Selectable, false );
+			this.SetStyle( ControlStyles.EnableNotifyMessage, true );
+			this.SetStyle( ControlStyles.UserMouse, true );
+			this.SetStyle( ControlStyles.UserPaint, true );
+			this.SetStyle( ControlStyles.AllPaintingInWmPaint, false );
+			this.SetStyle( ControlStyles.OptimizedDoubleBuffer, false );
+			this.SetStyle( ControlStyles.Selectable, true );
+
+			this.TabStop = false;
 			this.DoubleBuffered = false;
 			this.Resize += OnResize;
 		}
@@ -431,5 +438,6 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
