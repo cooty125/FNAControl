@@ -9,7 +9,7 @@
  * Description: 
  * This class serves as an FNA component that enables users
  * to use FNA3D in WinForms applications. Place this file in FNA/src/FNAPlatform
- * and add System.Windows.Forms to references.
+ * and add System.Windows.Forms to references. For more info visit README.md
  * =====================================================================
  */
 
@@ -388,6 +388,7 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
 
