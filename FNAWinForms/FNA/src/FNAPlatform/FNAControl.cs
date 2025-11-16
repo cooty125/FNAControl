@@ -32,43 +32,43 @@ namespace Microsoft.Xna.Framework
 		private System.Threading.Timer loopTimer;
 		private Stopwatch frameStopwatch;
 		private long previousFrameTime;
-		private readonly object timerLock = new object();
+		private readonly object timerLock = new object( );
 		private GameProvider gameProvider;
 		private const int FNAC_MSAA = 0;								// Multisample Anti-Aliasing
 		private const int FNAC_FPSMAX = 60;								// Maximum fps
 
-		[Browsable(false)]
+		[Browsable( false )]
 		public GraphicsDevice GraphicsDevice { get; private set; }
-		[Browsable(false)]
+		[Browsable( false )]
 		public GameWindow Window { get; private set; }
-		[Browsable(false)]
+		[Browsable( false )]
 		public ContentManager Content { get; private set; }
-		[DefaultValue(false)]
+		[DefaultValue( false )]
 		public bool IsInitialized { get; private set; }
-		[Category("FNA")]
-		[Description("Target framerate")]
-		[DefaultValue(60)]
+		[Category( "FNA" )]
+		[Description( "Target framerate" )]
+		[DefaultValue( 60 )]
 		public int FPSMax { get; set; }
-		[Browsable(false)]
+		[Browsable( false )]
 		public float FPS { get; private set; }
-		[Browsable(false)]
+		[Browsable( false )]
 		public bool IsRunning { get; private set; }
 
-		protected abstract void Initialize();
-		protected abstract void Update(float elapsedTime);
-		protected abstract void Draw();
+		protected abstract void Initialize( );
+		protected abstract void Update( float elapsedTime );
+		protected abstract void Draw( );
 
 		public FNAControl( ) {
-			this.designMode = (LicenseManager.UsageMode == LicenseUsageMode.Designtime);
+			this.designMode = ( LicenseManager.UsageMode == LicenseUsageMode.Designtime );
 
-			if (!this.designMode && (this.Width <= 0 || this.Height <= 0)) {
+			if ( !this.designMode && ( this.Width <= 0 || this.Height <= 0 ) ) {
 				this.Width = 800;
 				this.Height = 600;
 			}
 
 			this.FPSMax = FNAC_FPSMAX;
 
-			this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.Selectable, false);
+			this.SetStyle( ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.Selectable, false );
 			this.DoubleBuffered = false;
 			this.Resize += OnResize;
 		}
@@ -76,9 +76,9 @@ namespace Microsoft.Xna.Framework
 		//
 		// FNA
 		// Initialize
-		private void initialize_FNA() {
-			if (this.IsInitialized) { return; }
-			if (this.designMode) { return; }
+		private void initialize_FNA( ) {
+			if ( this.IsInitialized ) { return; }
+			if ( this.designMode ) { return; }
 
 			try {
 				this.sdl_window = this.create_SDLWindow( );
@@ -91,12 +91,12 @@ namespace Microsoft.Xna.Framework
 
 				initialize_GraphicsDevice( );
 
-				ServiceContainer services = new ServiceContainer();
-				GraphicsDeviceService gdService = new GraphicsDeviceService(this.GraphicsDevice);
-				services.AddService(typeof(IGraphicsDeviceService), gdService);
+				ServiceContainer services = new ServiceContainer( );
+				GraphicsDeviceService gdService = new GraphicsDeviceService( this.GraphicsDevice );
+				services.AddService( typeof( IGraphicsDeviceService ), gdService );
 
-				this.gameProvider = new GameProvider(gdService);
-				this.Content = new ContentManager(services);
+				this.gameProvider = new GameProvider( gdService );
+				this.Content = new ContentManager( services );
 				this.Content.RootDirectory = @"Content";
 
 				SDL.SDL_ShowWindow( this.sdl_window );
@@ -112,7 +112,7 @@ namespace Microsoft.Xna.Framework
 				this.StartRendering( );
 
 			} catch (Exception ex) {
-				throw new InvalidOperationException("FNA Initialization failed: ", ex);
+				throw new InvalidOperationException( "FNA Initialization failed: ", ex );
 			}
 		}
 
@@ -131,7 +131,7 @@ namespace Microsoft.Xna.Framework
 			bool[] textInputControlDown = new bool[64];
 			bool textInputSuppress = true;
 
-			FNAPlatform.PollEvents(this.gameProvider, ref gAdapter, textInputControlDown, ref textInputSuppress);
+			FNAPlatform.PollEvents( this.gameProvider, ref gAdapter, textInputControlDown, ref textInputSuppress );
 
 			long currentTime = this.frameStopwatch.ElapsedMilliseconds;
 			float elapsedTime = ( ( currentTime - this.previousFrameTime ) / 1000.0f );
@@ -144,8 +144,8 @@ namespace Microsoft.Xna.Framework
 			this.Update( elapsedTime );
 
 			if ( this.IsInitialized || this.GraphicsDevice != null ) {
-				this.Draw();
-				this.GraphicsDevice.Present();
+				this.Draw( );
+				this.GraphicsDevice.Present( );
 			}
 		}
 
@@ -163,16 +163,16 @@ namespace Microsoft.Xna.Framework
 				SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN |
 				SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS |
 				SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS) |
-				(SDL.SDL_WindowFlags) FNA3D.FNA3D_PrepareWindowAttributes();
+				(SDL.SDL_WindowFlags) FNA3D.FNA3D_PrepareWindowAttributes( );
 
 			IntPtr sdlHWND = SDL.SDL_CreateWindow(
 				"FNA Control",
-				Math.Max(1, this.Width),
-				Math.Max(1, this.Height),
+				Math.Max( 1, this.Width ),
+				Math.Max( 1, this.Height ),
 				initFlags
 			);
 
-			if (sdlHWND == IntPtr.Zero) {
+			if ( sdlHWND == IntPtr.Zero ) {
 				throw new Exception( "SDL_CreateWindow failed: " + SDL.SDL_GetError( ) );
 			}
 
@@ -245,7 +245,7 @@ namespace Microsoft.Xna.Framework
 				pParams.BackBufferWidth = Math.Max( 1, this.Width );
 				pParams.BackBufferHeight = Math.Max( 1, this.Height );
 
-				this.GraphicsDevice.Reset(pParams);
+				this.GraphicsDevice.Reset( pParams );
 			}
 		}
 
@@ -338,7 +338,7 @@ namespace Microsoft.Xna.Framework
 		}
 		protected override void OnGotFocus( EventArgs e )
 		{
-			SDL.SDL_RaiseWindow(this.sdl_window);
+			SDL.SDL_RaiseWindow( this.sdl_window );
 			base.OnGotFocus( e );
 		}
 		protected override void Dispose( bool disposing ) {
@@ -383,13 +383,13 @@ namespace Microsoft.Xna.Framework
 			public const int WS_OVERLAPPEDWINDOW = 0x00CF0000;
 
 			[DllImport("user32.dll")]
-			public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+			public static extern IntPtr SetParent( IntPtr hWndChild, IntPtr hWndNewParent );
 			[DllImport("user32.dll")]
-			public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+			public static extern bool SetWindowPos( IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags );
 			[DllImport("user32.dll")]
-			public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+			public static extern int SetWindowLong( IntPtr hWnd, int nIndex, int dwNewLong );
 			[DllImport("user32.dll")]
-			public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+			public static extern int GetWindowLong( IntPtr hWnd, int nIndex );
 		}
 
 		//
@@ -422,13 +422,14 @@ namespace Microsoft.Xna.Framework
 		internal class GameProvider : Game
 		{
 			protected override void Initialize() { }
-			protected override void Update(GameTime gameTime) { }
-			protected override void Draw(GameTime gameTime) { }
+			protected override void Update( GameTime gameTime ) { }
+			protected override void Draw( GameTime gameTime ) { }
 
-			public GameProvider(GraphicsDeviceService gdService) {
-				this.Services.AddService(typeof(IGraphicsDeviceService), gdService);
+			public GameProvider( GraphicsDeviceService gdService ) {
+				this.Services.AddService( typeof( IGraphicsDeviceService ), gdService );
 			}
 		}
 	}
 }
+
 
