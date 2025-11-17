@@ -110,9 +110,7 @@ namespace Microsoft.Xna.Framework
 				this.initialize_GraphicsDevice( );
 
 				ServiceContainer services = new ServiceContainer();
-				GraphicsDeviceService gdService = new GraphicsDeviceService(this.GraphicsDevice);
-				services.AddService(typeof(IGraphicsDeviceService), gdService);
-
+				services.AddService(typeof(IGraphicsDeviceService), new GraphicsDeviceService( this.GraphicsDevice) );
 				this.Content = new ContentManager(services);
 				this.Content.RootDirectory = @"Content";
 
@@ -559,6 +557,7 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
 
