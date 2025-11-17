@@ -26,6 +26,8 @@ class FNA : FNAControl
 
     protected override void Initialize()
     {
+        this.Content.RootDirectory = @"Content";
+    
         GraphicsDevice.RasterizerState = RasterizerState.CullNone;
 
         effect = new BasicEffect(GraphicsDevice);
@@ -64,6 +66,9 @@ class FNA : FNAControl
 
     protected override void Update(float elapsedTime)
     {
+        MouseState mState = this.Input.GetMouseState( );
+        KeyboardState kState = this.Input.GetKeyboardState( );
+    
         rotation += elapsedTime * MathHelper.PiOver2;
         effect.World = Matrix.CreateRotationY(rotation) * Matrix.CreateRotationX(rotation * 0.7f);
     }
@@ -158,4 +163,5 @@ class FNA : FNAControl
             new Vector3(size, size, size)
         }, Color.Magenta);
     }
+
 }
