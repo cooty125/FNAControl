@@ -202,6 +202,7 @@ namespace Microsoft.Xna.Framework
 		//
 		// SDLKey
 		// Convert
+		// If you want to add some key do it here.
 		private Keys convert_SDLKey( uint sdlKeyCode ) {
 			switch ( sdlKeyCode ) {
 				case (uint) SDL.SDL_Keycode.SDLK_A: return Keys.A;
@@ -558,6 +559,7 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
 
