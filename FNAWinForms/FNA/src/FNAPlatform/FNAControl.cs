@@ -135,7 +135,7 @@ namespace Microsoft.Xna.Framework
 		// FNAControl
 		// LoopCallback
 		private void LoopCallback(object state) {
-			if ( !this.IsRunning || !this.IsInitialized || this.GraphicsDevice == null ) { return; }
+			if ( !this.IsRunning || !this.IsInitialized || this.GraphicsDevice == null || this.frameStopwatch == null ) { return; }
 
 			if ( this.InvokeRequired ) {
 				if ( !this.IsHandleCreated || this.IsDisposed ) { return; }
@@ -447,9 +447,20 @@ namespace Microsoft.Xna.Framework
 			base.OnPaint( e );
 		}
         protected override void Dispose( bool disposing ) {
-			this.StopRendering();
-			System.Threading.Thread.Sleep(100);
-			
+			this.StopRendering( );
+
+			if ( this.loopTimer != null ) {
+				this.loopTimer.Dispose( );
+				this.loopTimer = null;
+			}
+
+			System.Threading.Thread.Sleep( 100 );
+
+			if ( this.frameStopwatch != null ) {
+				this.frameStopwatch.Stop( );
+				this.frameStopwatch = null;
+			}
+
 			if ( disposing ) {
 				if ( this.GraphicsDevice != null ) {
 					this.GraphicsDevice.Dispose( );
@@ -460,16 +471,6 @@ namespace Microsoft.Xna.Framework
 					SDL.SDL_HideWindow( this.sdl_window );
 					SDL.SDL_DestroyWindow( this.sdl_window );
 					SDL.SDL_Quit( );
-				}
-
-				if ( this.loopTimer != null )	{
-					this.loopTimer.Dispose( );
-					this.loopTimer = null;
-				}
-
-				if ( this.frameStopwatch != null ) {
-					this.frameStopwatch.Stop( );
-					this.frameStopwatch = null;
 				}
 			}
 
@@ -557,6 +558,7 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
 
