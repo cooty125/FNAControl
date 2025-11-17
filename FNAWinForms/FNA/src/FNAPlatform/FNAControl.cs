@@ -99,7 +99,6 @@ namespace Microsoft.Xna.Framework
 
 			try {
 				this.sdl_window = this.create_SDLWindow( );
-				SDL.SDL_SetWindowFocusable(this.sdl_window, true);
 
 				IntPtr sdl_wHandle = this.getHandle_SDLWindow( this.sdl_window );
 				this.embed_SDLWindow( sdl_wHandle );
@@ -128,7 +127,7 @@ namespace Microsoft.Xna.Framework
 				this.StartRendering( );
 
 			} catch (Exception ex) {
-				throw new InvalidOperationException("FNA Initialization failed: ", ex);
+				throw new InvalidOperationException( "FNA Initialization failed: ", ex );
 			}
 		}
 
@@ -183,7 +182,6 @@ namespace Microsoft.Xna.Framework
 					if ( e.button.button == 1 ) {
 						IntPtr winHWND = this.getHandle_SDLWindow( this.sdl_window );
 						USER32.SetFocus( winHWND );
-
 						SDL.SDL_RaiseWindow( this.sdl_window );
 						SDL.SDL_SetWindowFocusable( this.sdl_window, true );
 					}
@@ -557,6 +555,7 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
 
