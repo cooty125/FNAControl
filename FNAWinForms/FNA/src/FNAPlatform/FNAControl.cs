@@ -401,10 +401,9 @@ namespace Microsoft.Xna.Framework
 		}
         protected override void Dispose( bool disposing ) {
 			this.StopRendering();
-
+			System.Threading.Thread.Sleep(100);
+			
 			if ( disposing ) {
-				System.Threading.Thread.Sleep(50);
-
 				if ( this.GraphicsDevice != null ) {
 					this.GraphicsDevice.Dispose( );
 					this.GraphicsDevice = null;
