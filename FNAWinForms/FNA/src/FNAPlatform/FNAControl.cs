@@ -206,13 +206,57 @@ namespace Microsoft.Xna.Framework
 		// Convert
 		private Keys convert_SDLKey( uint sdlKeyCode ) {
 			switch ( sdlKeyCode ) {
-				case (uint) SDL.SDL_Keycode.SDLK_W: return Keys.W;
 				case (uint) SDL.SDL_Keycode.SDLK_A: return Keys.A;
-				case (uint) SDL.SDL_Keycode.SDLK_S: return Keys.S;
+				case (uint) SDL.SDL_Keycode.SDLK_B: return Keys.B;
+				case (uint) SDL.SDL_Keycode.SDLK_C: return Keys.C;
 				case (uint) SDL.SDL_Keycode.SDLK_D: return Keys.D;
 				case (uint) SDL.SDL_Keycode.SDLK_E: return Keys.E;
+				case (uint) SDL.SDL_Keycode.SDLK_F: return Keys.F;
+				case (uint) SDL.SDL_Keycode.SDLK_G: return Keys.G;
+				case (uint) SDL.SDL_Keycode.SDLK_H: return Keys.H;
+				case (uint) SDL.SDL_Keycode.SDLK_I: return Keys.I;
+				case (uint) SDL.SDL_Keycode.SDLK_J: return Keys.J;
+				case (uint) SDL.SDL_Keycode.SDLK_K: return Keys.K;
+				case (uint) SDL.SDL_Keycode.SDLK_L: return Keys.L;
+				case (uint) SDL.SDL_Keycode.SDLK_M: return Keys.M;
+				case (uint) SDL.SDL_Keycode.SDLK_N: return Keys.N;
+				case (uint) SDL.SDL_Keycode.SDLK_O: return Keys.O;
+				case (uint) SDL.SDL_Keycode.SDLK_P: return Keys.P;
 				case (uint) SDL.SDL_Keycode.SDLK_Q: return Keys.Q;
+				case (uint) SDL.SDL_Keycode.SDLK_R: return Keys.R;
+				case (uint) SDL.SDL_Keycode.SDLK_S: return Keys.S;
+				case (uint) SDL.SDL_Keycode.SDLK_T: return Keys.T;
+				case (uint) SDL.SDL_Keycode.SDLK_U: return Keys.U;
+				case (uint) SDL.SDL_Keycode.SDLK_V: return Keys.V;
+				case (uint) SDL.SDL_Keycode.SDLK_W: return Keys.W;
+				case (uint) SDL.SDL_Keycode.SDLK_X: return Keys.X;
+				case (uint) SDL.SDL_Keycode.SDLK_Y: return Keys.Y;
+				case (uint) SDL.SDL_Keycode.SDLK_Z: return Keys.Z;
+				case (uint) SDL.SDL_Keycode.SDLK_0: return Keys.NumPad0;
+				case (uint) SDL.SDL_Keycode.SDLK_1: return Keys.NumPad1;
+				case (uint) SDL.SDL_Keycode.SDLK_2: return Keys.NumPad2;
+				case (uint) SDL.SDL_Keycode.SDLK_3: return Keys.NumPad3;
+				case (uint) SDL.SDL_Keycode.SDLK_4: return Keys.NumPad4;
+				case (uint) SDL.SDL_Keycode.SDLK_5: return Keys.NumPad5;
+				case (uint) SDL.SDL_Keycode.SDLK_6: return Keys.NumPad6;
+				case (uint) SDL.SDL_Keycode.SDLK_7: return Keys.NumPad7;
+				case (uint) SDL.SDL_Keycode.SDLK_8: return Keys.NumPad8;
+				case (uint) SDL.SDL_Keycode.SDLK_9: return Keys.NumPad9;
+				case (uint) SDL.SDL_Keycode.SDLK_UP: return Keys.Up;
+				case (uint) SDL.SDL_Keycode.SDLK_DOWN: return Keys.Down;
+				case (uint) SDL.SDL_Keycode.SDLK_LEFT: return Keys.Left;
+				case (uint) SDL.SDL_Keycode.SDLK_RIGHT: return Keys.Right;
+				case (uint) SDL.SDL_Keycode.SDLK_RETURN: return Keys.Enter;
+				case (uint) SDL.SDL_Keycode.SDLK_LALT: return Keys.LeftAlt;
+				case (uint) SDL.SDL_Keycode.SDLK_RALT: return Keys.RightAlt;
+				case (uint) SDL.SDL_Keycode.SDLK_LCTRL: return Keys.LeftControl;
+				case (uint) SDL.SDL_Keycode.SDLK_RCTRL: return Keys.RightControl;
+				case (uint) SDL.SDL_Keycode.SDLK_LSHIFT: return Keys.LeftShift;
+				case (uint) SDL.SDL_Keycode.SDLK_RSHIFT: return Keys.RightShift;
+				case (uint) SDL.SDL_Keycode.SDLK_ESCAPE: return Keys.Escape;
+				case (uint) SDL.SDL_Keycode.SDLK_TAB: return Keys.Tab;
 				case (uint) SDL.SDL_Keycode.SDLK_SPACE: return Keys.Space;
+				case (uint) SDL.SDL_Keycode.SDLK_BACKSPACE: return Keys.Back;
 
 				default:
 					return Keys.None;
@@ -515,5 +559,6 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
