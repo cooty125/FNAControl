@@ -138,7 +138,9 @@ namespace Microsoft.Xna.Framework
 			if ( !this.IsRunning || !this.IsInitialized || this.GraphicsDevice == null ) { return; }
 
 			if ( this.InvokeRequired ) {
-				this.BeginInvoke( new Action( ( ) => this.LoopCallback( state ) ) );
+				if ( !this.IsHandleCreated || this.IsDisposed ) { return; }
+
+				this.BeginInvoke( new Action( ( ) => { if (this.IsRunning) { this.LoopCallback(state); } } ) );
 				return;
 			}
 
@@ -555,6 +557,7 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
 
