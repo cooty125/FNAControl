@@ -176,10 +176,10 @@ namespace Microsoft.Xna.Framework
 		private void process_SDLEvent( SDL.SDL_Event e ) {
 			switch ( e.type ) {
 				case 768:   // SDL_EVENT_KEY_DOWN
-					this.inputState.PressedKeys.Add( this.convert_SDLKey( e.key.key) );
+					this.inputState.KeyboardPressedKeys.Add( this.convert_SDLKey( e.key.key) );
 					break;
 				case 769:   // SDL_EVENT_KEY_UP
-					this.inputState.PressedKeys.Remove( this.convert_SDLKey( e.key.key ) );
+					this.inputState.KeyboardPressedKeys.Remove( this.convert_SDLKey( e.key.key ) );
 					break;
 				case 1025:  // SDL_EVENT_MOUSE_BUTTON_DOWN
 					if ( e.button.button == 1 ) {
@@ -189,10 +189,15 @@ namespace Microsoft.Xna.Framework
 						SDL.SDL_RaiseWindow( this.sdl_window );
 						SDL.SDL_SetWindowFocusable( this.sdl_window, true );
 					}
+
+					this.inputState.MousePressedButtons.Add( (MouseButton) e.button.button );
 					break;
 				case 1026:  // SDL_EVENT_MOUSE_BUTTON_UP
+					this.inputState.MousePressedButtons.Remove( (MouseButton) e.button.button );
+					break;
 				case 1024:  // SDL_EVENT_MOUSE_MOTION
-							
+					this.inputState.MouseX = (int) e.motion.x;
+					this.inputState.MouseY = (int) e.motion.y;
 					break;
 			}
 		}
@@ -433,13 +438,36 @@ namespace Microsoft.Xna.Framework
 		// Input
 		// CustomInputState
 		public class CustomInputState {
-			public HashSet<Keys> PressedKeys = new HashSet<Keys>();
-			public MouseState MouseState;
+			public HashSet<Keys> KeyboardPressedKeys = new HashSet<Keys>();
+			public HashSet<MouseButton> MousePressedButtons = new HashSet<MouseButton>();
+			public int MouseX { get; set; }
+			public int MouseY { get; set; }
 
 			public KeyboardState GetKeyboardState( ) {
-				return new KeyboardState( PressedKeys.ToArray() );
+				return new KeyboardState( this.KeyboardPressedKeys.ToArray() );
+			}
+			public MouseState GetMouseState( ) {
+       			return new MouseState(
+				this.MouseX, this.MouseY, 0,
+				this.getMouseButtonState( MouseButton.Left ),
+				this.getMouseButtonState( MouseButton.Middle ),
+				this.getMouseButtonState( MouseButton.Right ),
+				this.getMouseButtonState( MouseButton.X1 ),
+				this.getMouseButtonState( MouseButton.X2 )
+				);
+			}
+
+			private Microsoft.Xna.Framework.Input.ButtonState getMouseButtonState(MouseButton button) {
+				return this.MousePressedButtons.Contains(button) ? Microsoft.Xna.Framework.Input.ButtonState.Pressed : Microsoft.Xna.Framework.Input.ButtonState.Released;
 			}
 		}
+		public enum MouseButton {
+			Left = 1,
+			Middle = 2,
+			Right = 3,
+			X1 = 4,
+			X2 = 5
+		};
 
 		//
 		// USER32
@@ -487,3 +515,4 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
