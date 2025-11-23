@@ -181,7 +181,7 @@ namespace Microsoft.Xna.Framework
 					this.inputState.KeyboardPressedKeys.Remove( this.convert_SDLKey( e.key.key ) );
 					break;
 				case 1025:  // SDL_EVENT_MOUSE_BUTTON_DOWN
-					if ( e.button.button == MouseButton.Left ) {
+					if ( e.button.button == (uint)MouseButton.Left ) {
 						IntPtr winHWND = this.getHandle_SDLWindow( this.sdl_window );
 						USER32.SetFocus( winHWND );
 						SDL.SDL_RaiseWindow( this.sdl_window );
@@ -559,6 +559,7 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
 
