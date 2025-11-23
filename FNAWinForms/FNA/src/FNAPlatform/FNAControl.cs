@@ -46,7 +46,7 @@ namespace Microsoft.Xna.Framework
 		[Browsable(false)]
 		public GameWindow Window { get; private set; }
 		[Browsable(false)]
-		public CustomInputState InputState {
+		public CustomInputState Input {
 			get { return this.inputState; }
 		}
 		[Browsable(false)]
@@ -559,6 +559,7 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
+
 
 
 
