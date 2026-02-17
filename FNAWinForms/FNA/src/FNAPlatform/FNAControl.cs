@@ -559,14 +559,3 @@ namespace Microsoft.Xna.Framework
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
