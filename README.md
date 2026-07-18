@@ -8,7 +8,16 @@
 <li>FPS Counter and VSync lock</li>
 <li>Powerful update/draw loop</li>
 <li>Graphics Device Present has own Thread</li>
-<li>Plug and Play with All in One</li>
+
+<li>✔ Embedded SDL3 window inside WinForms Control</li>
+<li>✔ GraphicsDevice initialization</li>
+<li>✔ Background render thread</li>
+<li>✔ VSync rendering</li>
+<li>✔ Keyboard & Mouse input via SDL</li>
+<li>✔ Resize support</li>
+<li>✔ ContentManager support</li>
+<li>✔ Compatible with FNA lifecycle (Initialize/Update/Draw)</li>
+<li>✔ Plug and Play with All in One</li>
 </ul>
 <br>
 <p><b>How to get it run?</b></p>
