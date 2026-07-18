@@ -8,6 +8,7 @@
 <li>FPS Counter and with VSync lock</li>
 <li>Powerful update/draw loop</li>
 <li>GD Present has own Thread</li>
+<li>Cross-Thread operation methods</li>
 <li>Plug and Play with All in One</li>
 </ul>
 <br>
