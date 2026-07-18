@@ -5,8 +5,9 @@
 <li>Full GPU performance due to direct SDL Handle embeding</li>
 <li>ContentManager is included ( Root directory is set to: Content )</li>
 <li>Input events are also working fine ( Mouse + Keyboard tested )</li>
-<li>FPS Counter and FPS lock</li>
+<li>FPS Counter and with VSync lock</li>
 <li>Powerful update/draw loop</li>
+<li>GD Present has own Thread</li>
 <li>Plug and Play with All in One</li>
 </ul>
 <br>
