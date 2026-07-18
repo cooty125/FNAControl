@@ -74,6 +74,8 @@ namespace Microsoft.Xna.Framework
 		protected abstract void Initialize();
 		protected abstract void Update(float elapsedTime);
 		protected abstract void Draw();
+		// Virtual methods
+		protected virtual void OnControlResized( EventArgs e ) { }
 
 		public FNAControl() {
 			this.designMode = (LicenseManager.UsageMode == LicenseUsageMode.Designtime);
@@ -584,6 +586,8 @@ namespace Microsoft.Xna.Framework
 			this.resize_GraphicsDevice( );
 
 			this.RenderFrame( );
+
+			this.OnControlResized( EventArgs.Empty );
 		}
 		// Paint
 		protected override void OnPaint( PaintEventArgs e ) {
