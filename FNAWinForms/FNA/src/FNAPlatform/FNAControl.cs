@@ -30,6 +30,7 @@ using Microsoft.Xna.Framework.Input;
 using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 using SDL3;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.Xna.Framework
 {
@@ -68,6 +69,8 @@ namespace Microsoft.Xna.Framework
 		public float FPS { get; private set; }
 		[Browsable(false)]
 		public bool IsRunning { get; private set; }
+		[Browsable( false )]
+		public bool IsFocused { get { return this.hasFocus( ); } }
 
 		// Abstract methods
 		protected abstract void Initialize();
@@ -89,18 +92,45 @@ namespace Microsoft.Xna.Framework
 			this.SetStyle( ControlStyles.UserPaint, true );
 			this.SetStyle( ControlStyles.AllPaintingInWmPaint, false );
 			this.SetStyle( ControlStyles.OptimizedDoubleBuffer, false );
-			this.SetStyle( ControlStyles.Selectable, true );
+			this.SetStyle( ControlStyles.Selectable, false );
 
-			this.TabStop = true;
+			this.TabStop = false;
 			this.DoubleBuffered = false;
 			this.Enabled = true;
 			this.Resize += OnResize;
 		}
 
-        //
-        // FNA
-        // Initialize
-        private void initialize_FNA() {
+		//
+		// WndProc
+		// Override SetFocus
+		protected override void WndProc( ref Message m )
+		{
+			const int WM_MOUSEACTIVATE = 0x0021;
+
+			if ( m.Msg == WM_MOUSEACTIVATE ) {
+				if ( this.sdl_window != IntPtr.Zero ) {
+					try {
+						IntPtr hwnd = this.getHandle_SDLWindow( this.sdl_window );
+
+						if ( hwnd != IntPtr.Zero ) {
+							USER32.SetFocus( hwnd );
+							SDL.SDL_RaiseWindow( this.sdl_window );
+						}
+					}
+					catch { }
+				}
+
+				m.Result = ( IntPtr )0;
+				return;
+			}
+
+			base.WndProc( ref m );
+		}
+
+		//
+		// FNA
+		// Initialize
+		private void initialize_FNA() {
 			if (this.IsInitialized) { return; }
 			if (this.designMode) { return; }
 
@@ -153,8 +183,8 @@ namespace Microsoft.Xna.Framework
 				while ( SDL.SDL_PollEvent( out sdlEvent ) ) {
 					this.process_SDLEvent( sdlEvent );
 				}
-
-				if ( !this.isActive() ) {
+				
+				if ( !this.hasFocus() ) {
 					Thread.Sleep( 10 );
 					continue;
 				}
@@ -409,7 +439,7 @@ namespace Microsoft.Xna.Framework
 		//
 		// FNAControl
 		// HasFocus
-		private bool isActive( ) {
+		private bool hasFocus( ) {
 			try
 			{
 				if ( this.IsDisposed || !this.IsHandleCreated ) {
@@ -421,12 +451,7 @@ namespace Microsoft.Xna.Framework
 					return false;
 				}
 
-				Form activeForm = Form.ActiveForm;
-				if ( activeForm == null ) {
-					return false;
-				}
-
-				return activeForm == parentForm;
+				return ( Form.ActiveForm != parentForm );
 			}
 			catch
 			{
