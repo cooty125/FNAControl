@@ -614,7 +614,7 @@ namespace Microsoft.Xna.Framework
 				if ( this.sdl_window != IntPtr.Zero ) {
 					SDL.SDL_HideWindow( this.sdl_window );
 					SDL.SDL_DestroyWindow( this.sdl_window );
-					SDL.SDL_Quit( );
+					//SDL.SDL_Quit( );
 				}
 			}
 
