@@ -1,14 +1,8 @@
 <h2>Direct implementation of SDLWindow in WinForms using FNA Platform.</h2>
 <p><b>Main Features</b></p>
 <ul>
-<li>Full support of FNA Platform and FNA3D lib</li>
-<li>Full GPU performance due to direct SDL Handle embeding</li>
-<li>ContentManager is included ( Root directory is set to: Content )</li>
-<li>Input events are also working fine ( Mouse + Keyboard tested )</li>
-<li>FPS Counter and VSync lock</li>
-<li>Powerful update/draw loop</li>
-<li>Graphics Device Present has own Thread</li>
-
+<li>✔ Full support of FNA Platform and FNA3D lib</li>
+<li>✔ Full GPU performance due to direct SDL Handle embeding</li>
 <li>✔ Embedded SDL3 window inside WinForms Control</li>
 <li>✔ GraphicsDevice initialization</li>
 <li>✔ Background render thread</li>
