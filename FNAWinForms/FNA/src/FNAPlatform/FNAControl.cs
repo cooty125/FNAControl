@@ -2,8 +2,10 @@
  * FNAControl
  * =====================================================================
  * FileName: FNAControl.cs
+ * Project: FNA
+ * Location: FNA/src/FNAPlatform
  * ---------------------------------------------------------------------
- * This document is distributed under General Public License.
+ * This document is distributed under General Public License v3.0
  * Copyright © David Kutnar 2025 - All rights reserved.
  * =====================================================================
  * Description: 
@@ -14,32 +16,37 @@
  */
 
 using System;
-using System.Linq;
-using System.Diagnostics;
-using System.Windows.Forms;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
-using SDL3;
-using Microsoft.Xna.Framework.Graphics;
+using System.Threading;
+using System.Windows.Forms;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Keys = Microsoft.Xna.Framework.Input.Keys;
 
+using SDL3;
+
 namespace Microsoft.Xna.Framework
 {
+	/// <summary>
+	/// FNA Control for WinForms applications.
+	/// Uses background thread for rendering and VSync for frame synchronization.
+	/// </summary>
 	public abstract class FNAControl : Control
 	{
-		private IntPtr sdl_window;
+		private IntPtr sdl_window;										// HWND
 		private bool designMode;
-		private System.Threading.Timer loopTimer;
-		private Stopwatch frameStopwatch;
-		private long previousFrameTime;
-		private readonly object timerLock = new object();
+		private Thread renderThread;
+		private volatile bool renderThreadRunning = false;
+		private readonly object timerLock = new object();				// Timer LOCK
+		private readonly object inputLock = new object( );				// Input LOCK
 		private CustomInputState inputState;
 		private const int FNAC_MSAA = 0;								// Multisample Anti-Aliasing
-		private const int FNAC_FPSMAX = 60;                             // Maximum fps
 
 		[Browsable(false)]
 		public GraphicsDevice GraphicsDevice { get; private set; }
@@ -61,7 +68,8 @@ namespace Microsoft.Xna.Framework
 		public float FPS { get; private set; }
 		[Browsable(false)]
 		public bool IsRunning { get; private set; }
-		
+
+		// Abstract methods
 		protected abstract void Initialize();
 		protected abstract void Update(float elapsedTime);
 		protected abstract void Draw();
@@ -74,7 +82,6 @@ namespace Microsoft.Xna.Framework
 				this.Height = 600;
 			}
 
-			this.FPSMax = FNAC_FPSMAX;
 			this.inputState = new CustomInputState( );
 
 			this.SetStyle( ControlStyles.EnableNotifyMessage, true );
@@ -86,8 +93,8 @@ namespace Microsoft.Xna.Framework
 
 			this.TabStop = true;
 			this.DoubleBuffered = false;
-			this.Resize += OnResize;
 			this.Enabled = true;
+			this.Resize += OnResize;
 		}
 
         //
@@ -110,17 +117,15 @@ namespace Microsoft.Xna.Framework
 
 				ServiceContainer services = new ServiceContainer();
 				services.AddService(typeof(IGraphicsDeviceService), new GraphicsDeviceService( this.GraphicsDevice) );
+
 				this.Content = new ContentManager(services);
-				this.Content.RootDirectory = @"Content";
+				// Default content directory path
+				this.Content.RootDirectory = @"Content"; 
 
 				SDL.SDL_SetWindowFocusable( this.sdl_window, true );
 				SDL.SDL_ShowWindow( this.sdl_window );
 				SDL.SDL_RaiseWindow( this.sdl_window );
-				SDL.SDL_ShowCursor();
-
-				this.frameStopwatch = new Stopwatch( );
-				this.frameStopwatch.Start( );
-				this.previousFrameTime = 0;
+				SDL.SDL_ShowCursor( );
 
 				this.IsInitialized = true;
 				this.Initialize( );
@@ -133,39 +138,69 @@ namespace Microsoft.Xna.Framework
 
 		//
 		// FNAControl
-		// LoopCallback
-		private void LoopCallback(object state) {
-			if ( !this.IsRunning || !this.IsInitialized || this.GraphicsDevice == null || this.frameStopwatch == null ) { return; }
+		// RenderLoop
+		// RenderThreadProc
+		private void RenderThreadProc( ) {
+			Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
 
-			if ( this.InvokeRequired ) {
-				if ( !this.IsHandleCreated || this.IsDisposed ) { return; }
+			Stopwatch stopwatch = Stopwatch.StartNew( );
+			long previousFrameTime = 0;
 
-				this.BeginInvoke( new Action( ( ) => { if (this.IsRunning) { this.LoopCallback(state); } } ) );
-				return;
-			}
-
-			SDL.SDLBool hasEvents = true;
-			while ( hasEvents ) {
+			while ( this.renderThreadRunning && this.IsRunning )
+			{
+				// INPUT
 				SDL.SDL_Event sdlEvent;
-				hasEvents = SDL.SDL_PollEvent( out sdlEvent );
-				if ( hasEvents ) {
+				while ( SDL.SDL_PollEvent( out sdlEvent ) ) {
 					this.process_SDLEvent( sdlEvent );
 				}
-			}
 
-			long currentTime = this.frameStopwatch.ElapsedMilliseconds;
-			float elapsedTime = ( ( currentTime - this.previousFrameTime ) / 1000.0f );
-			this.previousFrameTime = currentTime;
+				if ( !this.isActive() ) {
+					Thread.Sleep( 10 );
+					continue;
+				}
 
-			if ( elapsedTime > 0 ) {
-				this.FPS = ( 1.0f / elapsedTime );
-			}
+				// COUNTER
+				long currentTime = stopwatch.ElapsedMilliseconds;
+				float elapsedTime = (currentTime - previousFrameTime) / 1000.0f;
+				previousFrameTime = currentTime;
 
-			this.Update( elapsedTime );
+				if ( elapsedTime > 0.1f ) {
+					elapsedTime = 0.1f;
+				}
+				if ( elapsedTime > 0 ) {
+					this.FPS = (1.0f / elapsedTime);
+				}
 
-			if ( this.IsInitialized || this.GraphicsDevice != null ) {
-				this.Draw();
-				this.GraphicsDevice.Present();
+				// UPDATE
+				lock ( this.inputLock )
+				{
+					this.Update( elapsedTime );
+				}
+
+				// DRAW
+				this.Draw( );
+
+				// PRESENT
+				if ( this.IsHandleCreated && !this.IsDisposed && this.GraphicsDevice != null ) {
+					this.BeginInvoke( new Action( ( ) => { this.GraphicsDevice.Present( ); } ) );
+				}
+
+				// FPS regulation
+				if ( this.FPSMax > 0 && this.FPS > this.FPSMax ) {
+					float targetFrameTime = 1.0f / this.FPSMax;
+					float currentFrameTime = ( float ) ( (stopwatch.ElapsedMilliseconds - currentTime) / 1000.0f );
+
+					if ( currentFrameTime < targetFrameTime ) {
+						int sleepTime = ( int ) (((targetFrameTime - currentFrameTime) * 1000) - 1 );
+
+						if ( sleepTime > 1 ) {
+							Thread.Sleep( Math.Min( sleepTime, 10 ) );
+						}
+					}
+				}
+
+				// Free CPU
+				Thread.Sleep( 1 );
 			}
 		}
 
@@ -173,36 +208,45 @@ namespace Microsoft.Xna.Framework
 		// SDLEvent
 		// Process
 		private void process_SDLEvent( SDL.SDL_Event e ) {
-			switch ( e.type ) {
-				case 768:   // SDL_EVENT_KEY_DOWN
-					this.inputState.KeyboardPressedKeys.Add( this.convert_SDLKey( e.key.key) );
-					break;
-				case 769:   // SDL_EVENT_KEY_UP
-					this.inputState.KeyboardPressedKeys.Remove( this.convert_SDLKey( e.key.key ) );
-					break;
-				case 1025:  // SDL_EVENT_MOUSE_BUTTON_DOWN
-					if ( e.button.button == (uint)MouseButton.Left ) {
-						IntPtr winHWND = this.getHandle_SDLWindow( this.sdl_window );
-						USER32.SetFocus( winHWND );
-						SDL.SDL_RaiseWindow( this.sdl_window );
-						SDL.SDL_SetWindowFocusable( this.sdl_window, true );
-					}
+			lock ( this.inputLock )
+			{
+				switch ( e.type )
+				{
+					case 512:	// SDL_EVENT_WINDOW_FOCUS_GAINED
+						break;
+					case 513:	// SDL_EVENT_WINDOW_FOCUS_LOST
+						break;
+					case 768:   // SDL_EVENT_KEY_DOWN
+						this.inputState.KeyboardPressedKeys.Add( this.convert_SDLKey( e.key.key ) );
+						break;
+					case 769:   // SDL_EVENT_KEY_UP
+						this.inputState.KeyboardPressedKeys.Remove( this.convert_SDLKey( e.key.key ) );
+						break;
+					case 1025:  // SDL_EVENT_MOUSE_BUTTON_DOWN
+						if ( e.button.button == ( uint ) MouseButton.Left )
+						{
+							IntPtr winHWND = this.getHandle_SDLWindow( this.sdl_window );
+							USER32.SetFocus( winHWND );
 
-					this.inputState.MousePressedButtons.Add( (MouseButton) e.button.button );
-					break;
-				case 1026:  // SDL_EVENT_MOUSE_BUTTON_UP
-					this.inputState.MousePressedButtons.Remove( (MouseButton) e.button.button );
-					break;
-				case 1024:  // SDL_EVENT_MOUSE_MOTION
-					this.inputState.MouseX = (int) e.motion.x;
-					this.inputState.MouseY = (int) e.motion.y;
-					break;
+							SDL.SDL_RaiseWindow( this.sdl_window );
+							SDL.SDL_SetWindowFocusable( this.sdl_window, true );
+						}
+
+						this.inputState.MousePressedButtons.Add( ( MouseButton ) e.button.button );
+						break;
+					case 1026:  // SDL_EVENT_MOUSE_BUTTON_UP
+						this.inputState.MousePressedButtons.Remove( ( MouseButton ) e.button.button );
+						break;
+					case 1024:  // SDL_EVENT_MOUSE_MOTION
+						this.inputState.MouseX = ( int ) e.motion.x;
+						this.inputState.MouseY = ( int ) e.motion.y;
+						break;
+				}
 			}
 		}
 		//
 		// SDLKey
 		// Convert
-		// If you want to add some key do it here.
 		private Keys convert_SDLKey( uint sdlKeyCode ) {
 			switch ( sdlKeyCode ) {
 				case (uint) SDL.SDL_Keycode.SDLK_A: return Keys.A;
@@ -340,7 +384,7 @@ namespace Microsoft.Xna.Framework
 				BackBufferWidth = Math.Max( 1, this.Width ),
 				BackBufferHeight = Math.Max( 1, this.Height ),
 				IsFullScreen = false,
-				PresentationInterval = PresentInterval.Immediate,
+				PresentationInterval = PresentInterval.One,
 				DepthStencilFormat = DepthFormat.Depth24Stencil8,
 				MultiSampleCount = FNAC_MSAA
 			};
@@ -364,26 +408,66 @@ namespace Microsoft.Xna.Framework
 
 		//
 		// FNAControl
+		// HasFocus
+		private bool isActive( ) {
+			try
+			{
+				if ( this.IsDisposed || !this.IsHandleCreated ) {
+					return false;
+				}
+
+				Form parentForm = this.FindForm( );
+				if ( parentForm == null ) {
+					return false;
+				}
+
+				Form activeForm = Form.ActiveForm;
+				if ( activeForm == null ) {
+					return false;
+				}
+
+				return activeForm == parentForm;
+			}
+			catch
+			{
+				return true;
+			}
+		}
+
+		//
+		// FNAControl
 		// StartRendering
 		public void StartRendering( ) {
 			if ( !this.IsInitialized || this.IsRunning ) { return; }
 
 			lock ( this.timerLock ) {
 				this.IsRunning = true;
-				int interval = Math.Max( 1, 1000 / this.FPSMax );
+				this.renderThreadRunning = true;
 
-				this.loopTimer = new System.Threading.Timer( this.LoopCallback, null, 0, interval );
+				this.renderThread = new Thread( RenderThreadProc );
+				this.renderThread.IsBackground = true;
+				this.renderThread.Priority = ThreadPriority.AboveNormal;
+				this.renderThread.Name = "FNARenderThread";
+				this.renderThread.Start( );
 			}
 		}
 		//
 		// FNAControl
 		// StopRendering
 		public void StopRendering( ) {
-			lock ( timerLock ) {
+			lock ( timerLock )
+			{
 				this.IsRunning = false;
-				if ( this.loopTimer != null ) {
-					this.loopTimer.Dispose( );
-					this.loopTimer = null;
+				this.renderThreadRunning = false;
+
+				if ( this.renderThread != null && this.renderThread.IsAlive ) {
+					// Thread interruption
+					if ( !this.renderThread.Join( 500 ) ) {
+						this.renderThread.Interrupt( );
+						Thread.Sleep( 100 );
+					}
+
+					this.renderThread = null;
 				}
 			}
 		}
@@ -426,6 +510,9 @@ namespace Microsoft.Xna.Framework
 			return dName;
 		}
 
+		//
+		// Events
+		// WinForms application events.
 		protected override void OnHandleCreated( EventArgs e ) {
 			base.OnHandleCreated( e );
 
@@ -433,6 +520,7 @@ namespace Microsoft.Xna.Framework
 				this.initialize_FNA( );
 			}
 		}
+		// Resize
 		private void OnResize( object sender, EventArgs e ) {
 			if ( !this.IsInitialized || this.sdl_window == IntPtr.Zero ) {
 				return;
@@ -444,22 +532,20 @@ namespace Microsoft.Xna.Framework
 
 			this.resize_GraphicsDevice( );
 		}
+		// Paint
 		protected override void OnPaint( PaintEventArgs e ) {
 			base.OnPaint( e );
 		}
-        protected override void Dispose( bool disposing ) {
+
+		//
+		// FNAControl
+		// Dispose
+		protected override void Dispose( bool disposing ) {
 			this.StopRendering( );
 
-			if ( this.loopTimer != null ) {
-				this.loopTimer.Dispose( );
-				this.loopTimer = null;
-			}
-
-			System.Threading.Thread.Sleep( 100 );
-
-			if ( this.frameStopwatch != null ) {
-				this.frameStopwatch.Stop( );
-				this.frameStopwatch = null;
+			if ( this.IsHandleCreated ) {
+				Application.DoEvents( );
+				Thread.Sleep( 50 );
 			}
 
 			if ( disposing ) {
@@ -491,13 +577,13 @@ namespace Microsoft.Xna.Framework
 				return new KeyboardState( this.KeyboardPressedKeys.ToArray() );
 			}
 			public MouseState GetMouseState( ) {
-       			return new MouseState(
-				this.MouseX, this.MouseY, 0,
-				this.getMouseButtonState( MouseButton.Left ),
-				this.getMouseButtonState( MouseButton.Middle ),
-				this.getMouseButtonState( MouseButton.Right ),
-				this.getMouseButtonState( MouseButton.X1 ),
-				this.getMouseButtonState( MouseButton.X2 )
+                return new MouseState(
+					this.MouseX, this.MouseY, 0,
+					this.getMouseButtonState( MouseButton.Left ),
+					this.getMouseButtonState( MouseButton.Middle ),
+					this.getMouseButtonState( MouseButton.Right ),
+					this.getMouseButtonState( MouseButton.X1 ),
+					this.getMouseButtonState( MouseButton.X2 )
 				);
 			}
 
@@ -532,6 +618,12 @@ namespace Microsoft.Xna.Framework
 			public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 			[DllImport("user32.dll")]
 			public static extern IntPtr SetFocus(IntPtr hWnd);
+			[DllImport( "user32.dll" )]
+			public static extern IntPtr GetForegroundWindow( );
+			[DllImport( "user32.dll" )]
+			public static extern IntPtr GetParent( IntPtr hWnd );
+			[DllImport( "user32.dll" )]
+			public static extern uint GetWindowThreadProcessId( IntPtr hWnd, out uint processId );
 		}
 
 		//
