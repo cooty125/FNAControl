@@ -26,7 +26,6 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -44,13 +43,11 @@ namespace Microsoft.Xna.Framework
 		private bool designMode;
 		private Thread renderThread;
 		private volatile bool renderThreadRunning = false;
+		private volatile bool presentPending = false;
 		private readonly object timerLock = new object();				// Timer LOCK
 		private readonly object inputLock = new object( );				// Input LOCK
 		private CustomInputState inputState;
 		private const int FNAC_MSAA = 0;                                // Multisample Anti-Aliasing
-		private SynchronizationContext uiContext;                       // UI Context
-		private ConcurrentQueue<Action> uiActionQueue = new ConcurrentQueue<Action>( );
-		private readonly object uiActionLock = new object( );			// UI Thread LOCK
 
 		[ Browsable(false)]
 		public GraphicsDevice GraphicsDevice { get; private set; }
@@ -101,7 +98,7 @@ namespace Microsoft.Xna.Framework
 
 		//
 		// WndProc
-		// Override SetFocus
+		// Override SetFocus event
 		protected override void WndProc( ref Message m )
 		{
 			const int WM_MOUSEACTIVATE = 0x0021;
@@ -122,7 +119,7 @@ namespace Microsoft.Xna.Framework
 				m.Result = ( IntPtr )0;
 				return;
 			}
-
+			
 			base.WndProc( ref m );
 		}
 
@@ -164,7 +161,7 @@ namespace Microsoft.Xna.Framework
 				throw new InvalidOperationException( "FNA Initialization failed: ", ex );
 			}
 		}
-
+		
 		//
 		// FNAControl
 		// RenderLoop
@@ -211,7 +208,15 @@ namespace Microsoft.Xna.Framework
 
 				// PRESENT
 				if ( this.IsHandleCreated && !this.IsDisposed && this.GraphicsDevice != null ) {
-					this.BeginInvoke( new Action( ( ) => { this.GraphicsDevice.Present( ); } ) );
+					if ( !this.presentPending )
+					{
+						this.presentPending = true;
+						this.BeginInvoke( new Action( ( ) =>
+						{
+							this.GraphicsDevice.Present( );
+							this.presentPending = false;
+						} ) );
+					}
 				}
 
 				// Free CPU
@@ -424,9 +429,9 @@ namespace Microsoft.Xna.Framework
 		//
 		// FNAControl
 		// HasFocus
-		private bool hasFocus( ) {
-			try
-			{
+		private bool hasFocus( )
+		{
+			try {
 				if ( this.IsDisposed || !this.IsHandleCreated ) {
 					return false;
 				}
@@ -436,38 +441,35 @@ namespace Microsoft.Xna.Framework
 					return false;
 				}
 
-				return ( Form.ActiveForm != parentForm );
+				if ( Form.ActiveForm == parentForm ) {
+					return false;
+				}
+
+				if ( this.sdl_window != IntPtr.Zero ) {
+					IntPtr foreground = USER32.GetForegroundWindow( );
+
+					if ( foreground == this.sdl_window ) {
+						return true;
+					}
+				}
+
+				if ( parentForm.Visible && Form.ActiveForm == null ) {
+					return true;
+				}
+
+				return false;
 			}
-			catch
-			{
+			catch {
 				return true;
 			}
 		}
 
 		//
 		// FNAControl
-		// Process UI Thread Actions in Queue
-		private void process_UIThreadActions( )
-		{
-			Action[ ] actions;
-			lock ( this.uiActionLock )
-			{
-				if ( this.uiActionQueue.Count == 0 ) {
-					return;
-				}
-
-				actions = this.uiActionQueue.ToArray( );
-				this.uiActionQueue = new ConcurrentQueue<Action>( );
-			}
-
-			foreach ( var action in actions ) {
-				action( );
-			}
-		}
-
-		//
-		// FNAControl
 		// StartRendering
+		/// <summary>
+		/// Starts rendering thread
+		/// </summary>
 		public void StartRendering( ) {
 			if ( !this.IsInitialized || this.IsRunning ) { return; }
 
@@ -485,6 +487,9 @@ namespace Microsoft.Xna.Framework
 		//
 		// FNAControl
 		// StopRendering
+		/// <summary>
+		/// Stops rendering thread
+		/// </summary>
 		public void StopRendering( ) {
 			lock ( timerLock )
 			{
@@ -505,6 +510,9 @@ namespace Microsoft.Xna.Framework
 		//
 		// FNAControl
 		// GetCurrentVideoDriverName
+		/// <summary>
+		/// Returns video driver name in use
+		/// </summary>
 		public string GetCurrentVideoDriverName() {
 			string dName = "NULL";
 
@@ -540,30 +548,6 @@ namespace Microsoft.Xna.Framework
 
 			return dName;
 		}
-		//
-		// FNAControl
-		// RunOnUIThread
-		public void RunOnUIThread( Action action ) {
-			if ( this.uiContext == null ) {
-				action( );
-				return;
-			}
-
-			if ( SynchronizationContext.Current == this.uiContext ) {
-				action( ); // UI Thread
-			}
-			else {
-				this.uiContext.Post( _ => action( ), null );
-			}
-		}
-		//
-		// FNAControl
-		// InvokeOnUIThread
-		public void InvokeOnUIThread( Action action )
-		{
-			this.uiActionQueue.Enqueue( action );
-			this.RunOnUIThread( this.process_UIThreadActions );
-		}
 
 		//
 		// Events
@@ -572,8 +556,6 @@ namespace Microsoft.Xna.Framework
 			base.OnHandleCreated( e );
 
 			if ( !this.designMode && !this.IsInitialized ) {
-				this.uiContext = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext( );
-
 				this.initialize_FNA( );
 			}
 		}
