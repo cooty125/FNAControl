@@ -15,22 +15,22 @@
  * =====================================================================
  */
 
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using SDL3;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using Keys = Microsoft.Xna.Framework.Input.Keys;
-
-using SDL3;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.Xna.Framework
 {
@@ -47,9 +47,12 @@ namespace Microsoft.Xna.Framework
 		private readonly object timerLock = new object();				// Timer LOCK
 		private readonly object inputLock = new object( );				// Input LOCK
 		private CustomInputState inputState;
-		private const int FNAC_MSAA = 0;								// Multisample Anti-Aliasing
+		private const int FNAC_MSAA = 0;                                // Multisample Anti-Aliasing
+		private SynchronizationContext uiContext;                       // UI Context
+		private ConcurrentQueue<Action> uiActionQueue = new ConcurrentQueue<Action>( );
+		private readonly object uiActionLock = new object( );			// UI Thread LOCK
 
-		[Browsable(false)]
+		[ Browsable(false)]
 		public GraphicsDevice GraphicsDevice { get; private set; }
 		[Browsable(false)]
 		public GameWindow Window { get; private set; }
@@ -61,10 +64,6 @@ namespace Microsoft.Xna.Framework
 		public ContentManager Content { get; private set; }
 		[DefaultValue(false)]
 		public bool IsInitialized { get; private set; }
-		[Category("FNA")]
-		[Description("Target framerate")]
-		[DefaultValue(60)]
-		public int FPSMax { get; set; }
 		[Browsable(false)]
 		public float FPS { get; private set; }
 		[Browsable(false)]
@@ -213,20 +212,6 @@ namespace Microsoft.Xna.Framework
 				// PRESENT
 				if ( this.IsHandleCreated && !this.IsDisposed && this.GraphicsDevice != null ) {
 					this.BeginInvoke( new Action( ( ) => { this.GraphicsDevice.Present( ); } ) );
-				}
-
-				// FPS regulation
-				if ( this.FPSMax > 0 && this.FPS > this.FPSMax ) {
-					float targetFrameTime = 1.0f / this.FPSMax;
-					float currentFrameTime = ( float ) ( (stopwatch.ElapsedMilliseconds - currentTime) / 1000.0f );
-
-					if ( currentFrameTime < targetFrameTime ) {
-						int sleepTime = ( int ) (((targetFrameTime - currentFrameTime) * 1000) - 1 );
-
-						if ( sleepTime > 1 ) {
-							Thread.Sleep( Math.Min( sleepTime, 10 ) );
-						}
-					}
 				}
 
 				// Free CPU
@@ -461,6 +446,27 @@ namespace Microsoft.Xna.Framework
 
 		//
 		// FNAControl
+		// Process UI Thread Actions in Queue
+		private void process_UIThreadActions( )
+		{
+			Action[ ] actions;
+			lock ( this.uiActionLock )
+			{
+				if ( this.uiActionQueue.Count == 0 ) {
+					return;
+				}
+
+				actions = this.uiActionQueue.ToArray( );
+				this.uiActionQueue = new ConcurrentQueue<Action>( );
+			}
+
+			foreach ( var action in actions ) {
+				action( );
+			}
+		}
+
+		//
+		// FNAControl
 		// StartRendering
 		public void StartRendering( ) {
 			if ( !this.IsInitialized || this.IsRunning ) { return; }
@@ -534,6 +540,30 @@ namespace Microsoft.Xna.Framework
 
 			return dName;
 		}
+		//
+		// FNAControl
+		// RunOnUIThread
+		public void RunOnUIThread( Action action ) {
+			if ( this.uiContext == null ) {
+				action( );
+				return;
+			}
+
+			if ( SynchronizationContext.Current == this.uiContext ) {
+				action( ); // UI Thread
+			}
+			else {
+				this.uiContext.Post( _ => action( ), null );
+			}
+		}
+		//
+		// FNAControl
+		// InvokeOnUIThread
+		public void InvokeOnUIThread( Action action )
+		{
+			this.uiActionQueue.Enqueue( action );
+			this.RunOnUIThread( this.process_UIThreadActions );
+		}
 
 		//
 		// Events
@@ -542,6 +572,8 @@ namespace Microsoft.Xna.Framework
 			base.OnHandleCreated( e );
 
 			if ( !this.designMode && !this.IsInitialized ) {
+				this.uiContext = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext( );
+
 				this.initialize_FNA( );
 			}
 		}
