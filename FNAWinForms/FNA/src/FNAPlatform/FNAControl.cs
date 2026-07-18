@@ -42,6 +42,8 @@ namespace Microsoft.Xna.Framework
 		private IntPtr sdl_window;										// HWND
 		private bool designMode;
 		private Thread renderThread;
+		private Stopwatch renderStopwatch;
+		private long previousFrameTime = 0;
 		private volatile bool renderThreadRunning = false;
 		private volatile bool presentPending = false;
 		private readonly object timerLock = new object();				// Timer LOCK
@@ -169,8 +171,8 @@ namespace Microsoft.Xna.Framework
 		private void RenderThreadProc( ) {
 			Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
 
-			Stopwatch stopwatch = Stopwatch.StartNew( );
-			long previousFrameTime = 0;
+			this.renderStopwatch = Stopwatch.StartNew( );
+			this.previousFrameTime = 0;
 
 			while ( this.renderThreadRunning && this.IsRunning )
 			{
@@ -185,42 +187,52 @@ namespace Microsoft.Xna.Framework
 					continue;
 				}
 
-				// COUNTER
-				long currentTime = stopwatch.ElapsedMilliseconds;
-				float elapsedTime = (currentTime - previousFrameTime) / 1000.0f;
-				previousFrameTime = currentTime;
-
-				if ( elapsedTime > 0.1f ) {
-					elapsedTime = 0.1f;
-				}
-				if ( elapsedTime > 0 ) {
-					this.FPS = (1.0f / elapsedTime);
-				}
-
-				// UPDATE
-				lock ( this.inputLock )
-				{
-					this.Update( elapsedTime );
-				}
-
-				// DRAW
-				this.Draw( );
-
-				// PRESENT
-				if ( this.IsHandleCreated && !this.IsDisposed && this.GraphicsDevice != null ) {
-					if ( !this.presentPending )
-					{
-						this.presentPending = true;
-						this.BeginInvoke( new Action( ( ) =>
-						{
-							this.GraphicsDevice.Present( );
-							this.presentPending = false;
-						} ) );
-					}
-				}
+				// FRAME
+				this.RenderFrame( );
 
 				// Free CPU
 				Thread.Sleep( 1 );
+			}
+		}
+
+		//
+		// FNAControl
+		// RenderFrame
+		private void RenderFrame()
+		{
+			// COUNTER
+			long currentTime = this.renderStopwatch.ElapsedMilliseconds;
+			float elapsedTime = (currentTime - this.previousFrameTime) / 1000.0f;
+			this.previousFrameTime = currentTime;
+
+			if ( elapsedTime > 0.1f ) {
+				elapsedTime = 0.1f;
+			}
+			if ( elapsedTime > 0 ) {
+				this.FPS = (1.0f / elapsedTime);
+			}
+
+			// UPDATE
+			lock ( this.inputLock )
+			{
+				this.Update( elapsedTime );
+			}
+
+			// DRAW
+			this.Draw( );
+
+			// PRESENT
+			if ( this.IsHandleCreated && !this.IsDisposed && this.GraphicsDevice != null )
+			{
+				if ( !this.presentPending )
+				{
+					this.presentPending = true;
+					this.BeginInvoke( new Action( ( ) =>
+					{
+						this.GraphicsDevice.Present( );
+						this.presentPending = false;
+					} ) );
+				}
 			}
 		}
 
@@ -570,6 +582,8 @@ namespace Microsoft.Xna.Framework
 			USER32.SetWindowPos( windowsHandle, IntPtr.Zero, 0, 0, this.Width, this.Height, 0x0040 );
 
 			this.resize_GraphicsDevice( );
+
+			this.RenderFrame( );
 		}
 		// Paint
 		protected override void OnPaint( PaintEventArgs e ) {
