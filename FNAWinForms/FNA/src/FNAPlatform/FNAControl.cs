@@ -200,7 +200,7 @@ namespace Microsoft.Xna.Framework
 		//
 		// FNAControl
 		// RenderFrame
-		private void RenderFrame()
+		public void RenderFrame()
 		{
 			// COUNTER
 			long currentTime = this.renderStopwatch.ElapsedMilliseconds;
