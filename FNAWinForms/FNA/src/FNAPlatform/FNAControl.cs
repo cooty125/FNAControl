@@ -188,8 +188,11 @@ namespace Microsoft.Xna.Framework
 					continue;
 				}
 
-				// FRAME
-				this.RenderFrame( );
+				lock ( this )
+				{
+					// FRAME
+					this.RenderFrame( );
+				}
 
 				// Free CPU
 				Thread.Sleep( 1 );
@@ -228,7 +231,7 @@ namespace Microsoft.Xna.Framework
 			// PRESENT
 			if ( this.IsHandleCreated && !this.IsDisposed && this.GraphicsDevice != null )
 			{
-				if ( !this.presentPending )
+				/*if ( !this.presentPending )
 				{
 					this.presentPending = true;
 					this.BeginInvoke( new Action( ( ) =>
@@ -236,7 +239,8 @@ namespace Microsoft.Xna.Framework
 						this.GraphicsDevice.Present( );
 						this.presentPending = false;
 					} ) );
-				}
+				}*/
+				this.GraphicsDevice.Present( );
 			}
 		}
 
