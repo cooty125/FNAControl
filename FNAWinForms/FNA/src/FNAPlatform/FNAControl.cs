@@ -319,16 +319,26 @@ namespace Microsoft.Xna.Framework
 				case (uint) SDL.SDL_Keycode.SDLK_X: return Keys.X;
 				case (uint) SDL.SDL_Keycode.SDLK_Y: return Keys.Y;
 				case (uint) SDL.SDL_Keycode.SDLK_Z: return Keys.Z;
-				case (uint) SDL.SDL_Keycode.SDLK_0: return Keys.NumPad0;
-				case (uint) SDL.SDL_Keycode.SDLK_1: return Keys.NumPad1;
-				case (uint) SDL.SDL_Keycode.SDLK_2: return Keys.NumPad2;
-				case (uint) SDL.SDL_Keycode.SDLK_3: return Keys.NumPad3;
-				case (uint) SDL.SDL_Keycode.SDLK_4: return Keys.NumPad4;
-				case (uint) SDL.SDL_Keycode.SDLK_5: return Keys.NumPad5;
-				case (uint) SDL.SDL_Keycode.SDLK_6: return Keys.NumPad6;
-				case (uint) SDL.SDL_Keycode.SDLK_7: return Keys.NumPad7;
-				case (uint) SDL.SDL_Keycode.SDLK_8: return Keys.NumPad8;
-				case (uint) SDL.SDL_Keycode.SDLK_9: return Keys.NumPad9;
+				case (uint) SDL.SDL_Keycode.SDLK_KP_0: return Keys.NumPad0;
+				case (uint) SDL.SDL_Keycode.SDLK_KP_1: return Keys.NumPad1;
+				case (uint) SDL.SDL_Keycode.SDLK_KP_2: return Keys.NumPad2;
+				case (uint) SDL.SDL_Keycode.SDLK_KP_3: return Keys.NumPad3;
+				case (uint) SDL.SDL_Keycode.SDLK_KP_4: return Keys.NumPad4;
+				case (uint) SDL.SDL_Keycode.SDLK_KP_5: return Keys.NumPad5;
+				case (uint) SDL.SDL_Keycode.SDLK_KP_6: return Keys.NumPad6;
+				case (uint) SDL.SDL_Keycode.SDLK_KP_7: return Keys.NumPad7;
+				case (uint) SDL.SDL_Keycode.SDLK_KP_8: return Keys.NumPad8;
+				case (uint) SDL.SDL_Keycode.SDLK_KP_9: return Keys.NumPad9;
+				case (uint) SDL.SDL_Keycode.SDLK_0: return Keys.D0;
+				case (uint) SDL.SDL_Keycode.SDLK_1: return Keys.D1;
+				case (uint) SDL.SDL_Keycode.SDLK_2: return Keys.D2;
+				case (uint) SDL.SDL_Keycode.SDLK_3: return Keys.D3;
+				case (uint) SDL.SDL_Keycode.SDLK_4: return Keys.D4;
+				case (uint) SDL.SDL_Keycode.SDLK_5: return Keys.D5;
+				case (uint) SDL.SDL_Keycode.SDLK_6: return Keys.D6;
+				case (uint) SDL.SDL_Keycode.SDLK_7: return Keys.D7;
+				case (uint) SDL.SDL_Keycode.SDLK_8: return Keys.D8;
+				case (uint) SDL.SDL_Keycode.SDLK_9: return Keys.D9;
 				case (uint) SDL.SDL_Keycode.SDLK_UP: return Keys.Up;
 				case (uint) SDL.SDL_Keycode.SDLK_DOWN: return Keys.Down;
 				case (uint) SDL.SDL_Keycode.SDLK_LEFT: return Keys.Left;
@@ -610,11 +620,6 @@ namespace Microsoft.Xna.Framework
 		protected override void Dispose( bool disposing ) {
 			this.StopRendering( );
 
-			if ( this.IsHandleCreated ) {
-				Application.DoEvents( );
-				Thread.Sleep( 50 );
-			}
-
 			if ( disposing ) {
 				if ( this.GraphicsDevice != null ) {
 					this.GraphicsDevice.Dispose( );
@@ -624,8 +629,9 @@ namespace Microsoft.Xna.Framework
 				if ( this.sdl_window != IntPtr.Zero ) {
 					SDL.SDL_HideWindow( this.sdl_window );
 					SDL.SDL_DestroyWindow( this.sdl_window );
-					// REMOVE This kill every single instance of sdl window, so we do not want to call this method!
+					// REMOVE This kill every single instance of sdl window, so we do not want to call this!!!
 					//SDL.SDL_Quit( );
+					sdl_window = IntPtr.Zero;
 				}
 			}
 
