@@ -20,7 +20,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SDL3;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
@@ -200,6 +199,9 @@ namespace Microsoft.Xna.Framework
 		//
 		// FNAControl
 		// RenderFrame
+		/// <summary>
+		/// Render one frame of Update/Draw loop.
+		/// </summary>
 		public void RenderFrame()
 		{
 			// COUNTER
@@ -274,6 +276,10 @@ namespace Microsoft.Xna.Framework
 					case 1024:  // SDL_EVENT_MOUSE_MOTION
 						this.inputState.MouseX = ( int ) e.motion.x;
 						this.inputState.MouseY = ( int ) e.motion.y;
+						break;
+					case 1027: // SDL_EVENT_MOUSE_WHEEL
+						float scrollDelta = ( e.wheel.y * 120 );
+						this.inputState.ScrollWheelValue += (int)scrollDelta;
 						break;
 				}
 			}
@@ -614,6 +620,7 @@ namespace Microsoft.Xna.Framework
 				if ( this.sdl_window != IntPtr.Zero ) {
 					SDL.SDL_HideWindow( this.sdl_window );
 					SDL.SDL_DestroyWindow( this.sdl_window );
+					// REMOVE This kill every single instance of sdl window, so we do not want to call this method!
 					//SDL.SDL_Quit( );
 				}
 			}
@@ -629,13 +636,14 @@ namespace Microsoft.Xna.Framework
 			public HashSet<MouseButton> MousePressedButtons = new HashSet<MouseButton>();
 			public int MouseX { get; set; }
 			public int MouseY { get; set; }
+			public int ScrollWheelValue { get; set; }
 
 			public KeyboardState GetKeyboardState( ) {
 				return new KeyboardState( this.KeyboardPressedKeys.ToArray() );
 			}
 			public MouseState GetMouseState( ) {
                 return new MouseState(
-					this.MouseX, this.MouseY, 0,
+					this.MouseX, this.MouseY, this.ScrollWheelValue,
 					this.getMouseButtonState( MouseButton.Left ),
 					this.getMouseButtonState( MouseButton.Middle ),
 					this.getMouseButtonState( MouseButton.Right ),
