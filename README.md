@@ -25,7 +25,5 @@
 
 <p>Demo project with simple defined vertex buffer cube</p>
 <img width="1050" height="575" alt="{EB5A1ADF-0967-49F3-8377-F0D24A517816}" src="https://github.com/user-attachments/assets/42e0bad3-8789-4141-b7c8-73220d216c25" />
-<p>Loading FBX models with textures</p>
-<img width="785" height="760" alt="{B1A426A7-A3D3-4787-B8ED-60D2A43D5424}" src="https://github.com/user-attachments/assets/9f657121-5266-488e-a7f3-39573b4a7bae" />
-<p>Wide range of usage (Model viewer with shaders)</p>
+<p>Loading FBX models with BC7 srgb textures and shaders</p>
 <img width="1007" height="762" alt="{DB50ABE1-6D14-4A43-BCE0-65EF747B699D}" src="https://github.com/user-attachments/assets/c95273f1-0a24-43ca-b1b6-8adf99b42e42" />
