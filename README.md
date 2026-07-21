@@ -27,5 +27,5 @@
 <img width="1050" height="575" alt="{EB5A1ADF-0967-49F3-8377-F0D24A517816}" src="https://github.com/user-attachments/assets/42e0bad3-8789-4141-b7c8-73220d216c25" />
 <p>Loading FBX models with textures</p>
 <img width="785" height="760" alt="{B1A426A7-A3D3-4787-B8ED-60D2A43D5424}" src="https://github.com/user-attachments/assets/9f657121-5266-488e-a7f3-39573b4a7bae" />
-<p>Wide range of usage (Model viewer with 8K textures)</p>
-<img width="1009" height="762" alt="{B6DC0913-6806-4A57-B89A-E7F1913277B0}" src="https://github.com/user-attachments/assets/3a80374a-710a-4965-b107-87de362f8a1e" />
+<p>Wide range of usage (Model viewer with shaders)</p>
+<img width="1007" height="762" alt="{DB50ABE1-6D14-4A43-BCE0-65EF747B699D}" src="https://github.com/user-attachments/assets/c95273f1-0a24-43ca-b1b6-8adf99b42e42" />
