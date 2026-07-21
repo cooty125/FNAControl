@@ -28,4 +28,4 @@
 <p>Loading FBX models with textures</p>
 <img width="785" height="760" alt="{B1A426A7-A3D3-4787-B8ED-60D2A43D5424}" src="https://github.com/user-attachments/assets/9f657121-5266-488e-a7f3-39573b4a7bae" />
 <p>Wide range of usage (Model viewer with 8K textures)</p>
-<img width="1008" height="762" alt="{70CA1D6A-4E5B-4CF0-AD33-005F5C7CBB54}" src="https://github.com/user-attachments/assets/1d6389f7-54b8-41ff-bedd-2c6dc6300c3d" />
+<img width="1009" height="762" alt="{B6DC0913-6806-4A57-B89A-E7F1913277B0}" src="https://github.com/user-attachments/assets/3a80374a-710a-4965-b107-87de362f8a1e" />
