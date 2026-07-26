@@ -8,8 +8,8 @@ namespace FNAWinForms
             InitializeComponent();
 
             this.fna = new FNA();
-            this.fna.FPSMax = 60;
             this.fna.Dock = DockStyle.Fill;
+            this.fnaView.MultiSampleCount = 4;
             this.splitContainer1.Panel2.Controls.Add(this.fna);
         }
     }
