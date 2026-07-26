@@ -124,13 +124,15 @@ namespace Microsoft.Xna.Framework
 		private IntPtr sdl_window;										// HWND
 		private bool designMode;										// Desingner
 
-		private Thread renderThread;									// Rendering thread
+		private Thread renderThread;                                    // Rendering thread
+		private volatile bool shouldThreadStop = false;
 		private Stopwatch renderStopwatch;                              // Frame timing
 		private long previousFrameTime = 0;                             // Last frame time
 		private volatile bool renderThreadRunning = false;              // Thread life
 		private readonly ManualResetEvent pauseEvent = new ManualResetEvent( true );
 
 		private readonly object timerLock = new object();               // Timer LOCK
+		private readonly object renderLock = new object( );             // Render LOCK
 		private readonly object pauseLock = new object( );              // Pause LOCK
 		private readonly object inputLock = new object( );              // Input LOCK
 
@@ -261,7 +263,7 @@ namespace Microsoft.Xna.Framework
 			this.previousFrameTime = 0;
 
 			// Main loop
-			while ( this.renderThreadRunning && this.IsRunning )
+			while ( this.renderThreadRunning && this.IsRunning && !this.shouldThreadStop )
 			{
 				// Events
 				SDL.SDL_Event sdlEvent;
@@ -289,7 +291,7 @@ namespace Microsoft.Xna.Framework
 				}
 
 				// Render
-				lock ( this )
+				lock ( this.renderLock )
 				{
 					this.RenderFrame( );
 				}
@@ -365,6 +367,7 @@ namespace Microsoft.Xna.Framework
 			{
 				this.IsRunning = true;
 				this.renderThreadRunning = true;
+				this.shouldThreadStop = false;
 
 				// Create adn start rendering thread
 				this.renderThread = new Thread( this.renderThreadProc );
@@ -384,6 +387,7 @@ namespace Microsoft.Xna.Framework
 			{
 				this.IsRunning = false;
 				this.renderThreadRunning = false;
+				this.shouldThreadStop = true;
 
 				if ( this.renderThread != null && this.renderThread.IsAlive ) {
 					// Thread interruption
@@ -543,6 +547,7 @@ namespace Microsoft.Xna.Framework
 			}
 
 			if ( disposing ) {
+				this.shouldThreadStop = true;
 				this.StopRendering( );
 
 				if ( this.pauseEvent != null ) {
@@ -1014,12 +1019,17 @@ namespace Microsoft.Xna.Framework
 		// Resize
 		//
 		private void resize_GraphicsDevice( ) {
-			if ( this.GraphicsDevice != null ) {
+			if ( this.GraphicsDevice == null ) {
+				return;
+			}
+
+			lock ( this.renderLock )
+			{
 				PresentationParameters pParams = this.GraphicsDevice.PresentationParameters;
 				pParams.BackBufferWidth = Math.Max( 1, this.Width );
 				pParams.BackBufferHeight = Math.Max( 1, this.Height );
 
-				this.GraphicsDevice.Reset(pParams);
+				this.GraphicsDevice.Reset( pParams );
 			}
 		}
 		//
@@ -1036,13 +1046,16 @@ namespace Microsoft.Xna.Framework
 				throw new ArgumentNullException( "configure" );
 			}
 
-			this.graphicsDeviceService.NotifyDeviceResetting( );
+			lock ( this.renderLock )
+			{
+				this.graphicsDeviceService.NotifyDeviceResetting( );
 
-			PresentationParameters pParams = this.GraphicsDevice.PresentationParameters;
-			configure( pParams );
+				PresentationParameters pParams = this.GraphicsDevice.PresentationParameters;
+				configure( pParams );
 
-			this.GraphicsDevice.Reset( pParams );
-			this.graphicsDeviceService.NotifyDeviceReset( );
+				this.GraphicsDevice.Reset( pParams );
+				this.graphicsDeviceService.NotifyDeviceReset( );
+			}
 		}
 
 		#endregion
