@@ -27,7 +27,8 @@ class FNA : FNAControl
     protected override void Initialize()
     {
         this.Content.RootDirectory = @"Content";
-    
+        
+        MultiSampleCount = 4;
         GraphicsDevice.RasterizerState = RasterizerState.CullNone;
 
         effect = new BasicEffect(GraphicsDevice);
