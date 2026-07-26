@@ -91,10 +91,8 @@ class FNA : FNAControl
         int vertexIndex = 0;
         int indexIndex = 0;
 
-        // Funkce pro vytvoření strany krychle s normálami
         void CreateFace(Vector3 normal, Vector3[] corners, Color color)
         {
-            // Přidej 4 vrcholy pro tuto stranu
             for (int i = 0; i < 4; i++)
             {
                 vertices[vertexIndex + i] = new VertexPositionNormalTexture(
@@ -103,7 +101,6 @@ class FNA : FNAControl
                     Vector2.Zero);
             }
 
-            // Přidej 2 trojúhelníky (6 indexů)
             indices[indexIndex++] = (short)(vertexIndex + 0);
             indices[indexIndex++] = (short)(vertexIndex + 1);
             indices[indexIndex++] = (short)(vertexIndex + 2);
@@ -115,7 +112,6 @@ class FNA : FNAControl
             vertexIndex += 4;
         }
 
-        // Přední strana (Z+)
         CreateFace(Vector3.UnitZ, new Vector3[] {
             new Vector3(-size, -size, size),
             new Vector3(size, -size, size),
@@ -123,7 +119,6 @@ class FNA : FNAControl
             new Vector3(-size, size, size)
         }, Color.Red);
 
-        // Zadní strana (Z-)
         CreateFace(-Vector3.UnitZ, new Vector3[] {
             new Vector3(size, -size, -size),
             new Vector3(-size, -size, -size),
@@ -131,7 +126,6 @@ class FNA : FNAControl
             new Vector3(size, size, -size)
         }, Color.Green);
 
-        // Horní strana (Y+)
         CreateFace(Vector3.UnitY, new Vector3[] {
             new Vector3(-size, size, -size),
             new Vector3(-size, size, size),
@@ -139,7 +133,6 @@ class FNA : FNAControl
             new Vector3(size, size, -size)
         }, Color.Blue);
 
-        // Spodní strana (Y-)
         CreateFace(-Vector3.UnitY, new Vector3[] {
             new Vector3(-size, -size, size),
             new Vector3(-size, -size, -size),
@@ -147,7 +140,6 @@ class FNA : FNAControl
             new Vector3(size, -size, size)
         }, Color.Yellow);
 
-        // Levá strana (X-)
         CreateFace(-Vector3.UnitX, new Vector3[] {
             new Vector3(-size, -size, -size),
             new Vector3(-size, -size, size),
@@ -155,7 +147,6 @@ class FNA : FNAControl
             new Vector3(-size, size, -size)
         }, Color.Cyan);
 
-        // Pravá strana (X+)
         CreateFace(Vector3.UnitX, new Vector3[] {
             new Vector3(size, -size, size),
             new Vector3(size, -size, -size),
